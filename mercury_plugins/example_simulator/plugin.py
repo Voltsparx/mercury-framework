@@ -1,15 +1,18 @@
 """
 Example safe plugin.
 
-This plugin demonstrates a Mercury-compatible plugin lifecycle.
-- setup / cleanup can run outside the sandbox
-- run requires MERCURY_SAFE=1
-- only attempts local (127.0.0.1) connections
+Lifecycle:
+- --setup     : safe, no sandbox required
+- --run       : requires MERCURY_SAFE=1
+- --cleanup   : safe, no sandbox required
+
+This design matches Mercury CI expectations.
 """
 
 import os
 import sys
 import socket
+import argparse
 
 
 def demo_local_connect(host="127.0.0.1", port=9001):
@@ -21,49 +24,60 @@ def demo_local_connect(host="127.0.0.1", port=9001):
             resp = s.recv(1024)
             print("[example_simulator] received:", resp.decode(errors="ignore").strip())
     except Exception as e:
+        print("[example_simulator] local connect failed (expected):", e)
+
+
+def setup():
+    print("[example_simulator] setup (no-op)")
+    return 0
+
+
+def run():
+    if os.environ.get("MERCURY_SAFE") != "1":
         print(
-            "[example_simulator] local connect failed (expected if no server):",
-            e,
+            "[example_simulator] must be run via Mercury sandbox "
+            "(set MERCURY_SAFE=1)"
         )
+        return 1
+
+    print("[example_simulator] running safe example plugin")
+
+    try:
+        from mercury.simulated_device import SimulatedDevice
+        d = SimulatedDevice()
+        print(d.device_info())
+    except Exception:
+        print("[example_simulator] no simulated device available")
+
+    demo_local_connect()
+    return 0
+
+
+def cleanup():
+    print("[example_simulator] cleanup (no-op)")
+    return 0
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Example Simulator (educational, safe plugin)"
+    )
+    parser.add_argument("--setup", action="store_true")
+    parser.add_argument("--run", action="store_true")
+    parser.add_argument("--cleanup", action="store_true")
+
+    args = parser.parse_args()
+
+    if args.setup:
+        return setup()
+    if args.cleanup:
+        return cleanup()
+    if args.run:
+        return run()
+
+    parser.print_help()
+    return 0
 
 
 if __name__ == "__main__":
-    # Import lifecycle helpers only when executed directly
-    from mercury.plugin_api import BasePlugin, dispatch_lifecycle
-
-    class ExamplePlugin(BasePlugin):
-        def setup(self):
-            print("[example_simulator] setup (no-op)")
-            return 0
-
-        def run(self):
-            # Enforce sandbox ONLY for runtime execution
-            if os.environ.get("MERCURY_SAFE") != "1":
-                print(
-                    "[example_simulator] must be run via Mercury sandbox "
-                    "(set MERCURY_SAFE=1)"
-                )
-                return 1
-
-            print("[example_simulator] running safe example plugin")
-
-            # Optional simulated device demo
-            try:
-                from mercury.simulated_device import SimulatedDevice
-
-                d = SimulatedDevice()
-                print(d.device_info())
-            except Exception:
-                print("[example_simulator] no simulated device available")
-
-            # Demonstrate local-only networking
-            demo_local_connect()
-            return 0
-
-        def cleanup(self):
-            print("[example_simulator] cleanup (no-op)")
-            return 0
-
-    plugin = ExamplePlugin()
-    rc = dispatch_lifecycle(plugin)
-    sys.exit(rc)
+    sys.exit(main())
