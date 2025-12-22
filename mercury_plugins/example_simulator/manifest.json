@@ -1,5 +1,6 @@
 {
-  "name": "Example Simulator",
+  "name": "example_simulator",
+  "display_name": "Example Simulator",
   "version": "0.1.0",
   "description": "A safe educational example plugin that demonstrates local-only network demos and simulated device info.",
   "author": "voltsparx",
