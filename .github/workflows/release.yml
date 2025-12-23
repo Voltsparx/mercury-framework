@@ -1,4 +1,4 @@
-name: Release
+name: Build & Release Lite ZIP
 
 on:
   push:
@@ -13,20 +13,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Build lite release ZIP
+      - name: Show ref (debug)
         run: |
-          pwsh ./build-lite-release.ps1
+          echo "GITHUB_REF=$GITHUB_REF"
 
-      - name: Create GitHub Release
+      - name: Build lite ZIP
+        shell: pwsh
+        run: |
+          ./build-lite-release.ps1
+          Get-ChildItem *.zip
+
+      - name: Upload release asset
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            mercury-framework-lite-*.zip
+          files: mercury-framework-lite-*.zip
