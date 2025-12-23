@@ -20,6 +20,10 @@ jobs:
         run: |
           echo "GITHUB_REF=$GITHUB_REF"
 
+      # ✅ Ensure PowerShell exists on Linux
+      - name: Set up PowerShell
+        uses: PowerShell/PowerShell@v1
+
       - name: Build lite ZIP
         shell: pwsh
         run: |
