@@ -7,12 +7,19 @@ name = "mercury-framework"
 version = "0.1.0"
 description = "Mercury security framework"
 requires-python = ">=3.10"
-license = "MIT"
+license = { text = "MIT" }
 
 [tool.setuptools]
-packages = [
-    "mercury",
-    "mercury_plugins",
-    "detection",
-    "payload_descriptors"
+package-dir = { "" = "." }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "mercury*",
+    "mercury_plugins*",
+    "detection*",
+    "payload_descriptors*"
 ]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.yaml", "*.yml", "*.md"]
