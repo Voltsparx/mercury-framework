@@ -5,44 +5,28 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install project
+      - name: Build lite release ZIP
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .
-
-      - name: Build Lite Release ZIP
-        shell: pwsh
-        run: |
-          ./build-lite-release.ps1
+          pwsh ./build-lite-release.ps1
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: mercury-framework-lite.zip
-          name: Mercury Framework ${{ github.ref_name }}
-          body: |
-            ## Mercury Framework – Lite Release
-
-            ✔ Educational & safe security simulation framework  
-            ✔ Plugin-based architecture  
-            ✔ Local-only network policy  
-            ✔ Fully tested in CI & Docker  
-
-            This release includes only the files required to **run Mercury**.
-            Development files, CI configs, and tests are excluded.
-
-            ⚠️ **Educational use only** — see RESPONSIBLE_USE.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            mercury-framework-lite-*.zip

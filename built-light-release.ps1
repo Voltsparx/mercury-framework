@@ -1,37 +1,29 @@
 $ErrorActionPreference = "Stop"
 
-$ZIP_NAME = "mercury-framework-lite.zip"
-$TEMP_DIR = "mercury-lite"
+$VERSION = (Get-Content pyproject.toml | Select-String 'version').ToString().Split('"')[1]
+$OUT = "dist"
+$ZIP = "mercury-framework-lite-$VERSION.zip"
 
-if (Test-Path $TEMP_DIR) { Remove-Item $TEMP_DIR -Recurse -Force }
-if (Test-Path $ZIP_NAME) { Remove-Item $ZIP_NAME -Force }
+Remove-Item $OUT -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory $OUT | Out-Null
 
-New-Item -ItemType Directory -Path $TEMP_DIR | Out-Null
-
-$INCLUDE = @(
-  "mercury",
-  "mercury_plugins",
-  "run.py",
-  "cli.py",
-  "sandbox",
-  "requirements.txt",
-  "README.md",
-  "LICENSE",
-  "INSTALL.md",
-  "RESPONSIBLE_USE.md",
-  "PLUGIN_AUTHOR_GUIDE.md",
-  "RELEASE.md",
-  "RELEASE_NOTES.md"
+$include = @(
+    "mercury",
+    "mercury_plugins",
+    "run.py",
+    "cli.py",
+    "requirements.txt",
+    "README.md",
+    "LICENSE",
+    "RESPONSIBLE_USE.md",
+    "PLUGIN_AUTHOR_GUIDE.md",
+    "samples"
 )
 
-foreach ($item in $INCLUDE) {
-  if (Test-Path $item) {
-    Copy-Item $item -Destination $TEMP_DIR -Recurse -Force
-  }
+foreach ($item in $include) {
+    Copy-Item $item $OUT -Recurse -Force
 }
 
-Compress-Archive -Path "$TEMP_DIR\*" -DestinationPath $ZIP_NAME
+Compress-Archive -Path "$OUT\*" -DestinationPath $ZIP -Force
 
-Remove-Item $TEMP_DIR -Recurse -Force
-
-Write-Host "✔ Lite release created: $ZIP_NAME"
+Write-Host "Built $ZIP"
